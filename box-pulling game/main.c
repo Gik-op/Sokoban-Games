@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "formula.h"
-#include "checkscanf.h"
+#include "function.h"
+
 int main()
 {
     while(1){
