@@ -31,9 +31,5 @@ void printMap(int map[LENGTH][WIDTH], int player[2]);
 int validMove(int map[LENGTH][WIDTH], int player[2], int direction);
 int validBox(int map[LENGTH][WIDTH], int player[2], int direction);
 int number(int map[LENGTH][WIDTH],int n);
-void validScanf_char(char *p);
-void vscanf0(char *get ,char a, char b,char c);
-void vscanf1(char *get);
-void returnn(void);
 
 #endif //BOXFINAL_FUNCTION_H
