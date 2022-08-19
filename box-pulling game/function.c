@@ -19,58 +19,96 @@ int DIR[5][2] = {
         {0,0}               /* SITU */
 };
 
-void playerPosition(int map[LENGTH][WIDTH],int player[2])
+void initializeMap(int map[LENGTH][WIDTH],FILE *fp)
 {
-    for(int length=0;length<LENGTH;length++)
+    for(int i=0;i<LENGTH;i++)
     {
-        for(int width=0;width<WIDTH;width++)
+        for(int i2=0;i2<WIDTH;i2++)
         {
-            if( map[length][width]==5)
-            {
-                *player=length;
-                *(player+1)=width;
-                *(*(map+length)+width)=2;
-            }
-            else if(map[length][width]==7)
-            {
-                *player=length;
-                *(player+1)=width;
-                *(*(map+length)+width)=4;
-            }
-            else if(map[length][width]==8)
-            {
-                *player=length;
-                *(player+1)=width;
-                *(*(map+length)+width)=6;
-            }
+            if((i2+1)%WIDTH==0)
+                fscanf(fp,"%1d\n",&map[i][i2]);
+            else
+                fscanf(fp,"%1d",&map[i][i2]);
         }
     }
 }
 
-void playerFinal(int map[LENGTH][WIDTH],int player[2])
+/* separate the player from the map */
+void playerPosition(int map[LENGTH][WIDTH],int player[2])
 {
     for(int length=0;length<LENGTH;length++)
-    {
+        for(int width=0;width<WIDTH;width++)
+        {
+            switch(map[length][width])
+            {
+                case person:map[length][width]=in;break;
+                case person_in_aim:map[length][width]=aim;break;
+                case person_in_get:map[length][width]=get;break;
+                default:continue;
+            }
+            player[0]=length;
+            player[1]=width;
+        }
+}
+
+/* merge the player location into the map */
+void playerFinal(int map[LENGTH][WIDTH],const int player[2])
+{
+    for(int length=0;length<LENGTH;length++)
         for(int width=0;width<WIDTH;width++)
         {
             if(length==player[0]&&width==player[1])
             {
-                if(map[length][width]==4)
-                {
-                    *(*(map+length)+width)=7;
-                }
-                else if(map[length][width]==6)
-                {
-                    *(*(map+length)+width)=8;
-                }
-                else *(*(map+length)+width)=5;
+                if(map[length][width]==aim)
+                    *(*(map+length)+width)=person_in_aim;
+                else if(map[length][width]==get)
+                    *(*(map+length)+width)=person_in_get;
+                else *(*(map+length)+width)=person;
             }
         }
-    }
 }
 
-// TODO print map, attention to print 'P' when meet player position
-void printMap(int map[LENGTH][WIDTH], int player[2])
+void playerMove(int map[LENGTH][WIDTH],int player[2],const int direction)
+{
+    int leng=DIR[direction][0]+player[0];
+    int wid=DIR[direction][1]+player[1];
+    int lengmore=leng+DIR[direction][0];
+    int widmore=wid+DIR[direction][1];
+    if(map[leng][wid]==box)
+    {
+        if(map[lengmore][widmore]!=aim)
+        {
+            if(map[lengmore][widmore]==get)
+            {
+                map[lengmore][widmore]=box_in_get;
+            }
+            else map[lengmore][widmore]=box;
+            map[leng][wid]=in;
+        }
+        else
+        {
+            map[lengmore][widmore]=get;
+            map[leng][wid]=in;
+        }
+    }
+    if(map[leng][wid]==box_in_get)
+    {
+        map[leng][wid]=get;
+        if(map[lengmore][widmore]==aim)
+        {
+            map[lengmore][widmore]=get;
+        }
+        else if(map[lengmore][widmore]==get)
+        {
+            map[lengmore][widmore]=box_in_get;
+        }
+        else map[lengmore][widmore]=box;
+    }
+    player[0] += DIR[direction][0];
+    player[1] += DIR[direction][1];
+}
+
+void printMap(int map[LENGTH][WIDTH], const int player[2])
 {
     system("cls");
     printf("\n");
@@ -79,69 +117,72 @@ void printMap(int map[LENGTH][WIDTH], int player[2])
         printf("          ");
         for(int width=0;width<WIDTH;width++)
         {
+            int index=map[length][width];
             if(length==player[0]&&width==player[1])
             {
-                if(map[length][width]==4||map[length][width]==6)
-                {
-                    printf("%c",symbols[7]);
-                }
-                else printf("%c",symbols[5]);
+                if(map[length][width]==aim||map[length][width]==get)
+                    printf("%c",symbols[person_in_aim]);
+                else
+                    printf("%c",symbols[person]);
             }
-            else if(map[length][width]==0)
-                printf("%c",symbols[0]);
-            else if(map[length][width]==1)
-                printf("%c",symbols[1]);
-            else if(map[length][width]==2)
-                printf("%c",symbols[2]);
-            else if(map[length][width]==3)
-                printf("%c",symbols[3]);
-            else if(map[length][width]==4)
-                printf("%c",symbols[4]);
-            else if(map[length][width]==6)
-                printf("%c",symbols[6]);
-            else if(map[length][width]==9)
-            {
-                printf("%c",symbols[3]);
-            }
+            else if(map[length][width]==box_in_get||map[length][width]==box)
+                printf("%c",symbols[box]);
+            else
+                printf("%c",symbols[index]);
         }
         printf("\n");
     }
+    printf("\n");
 }
 
-// TODO check a move is valid? return true for valid, false for invalid
-int validMove(int map[LENGTH][WIDTH], int player[2], int direction)
+void storeMap(int map[LENGTH][WIDTH], int player[2],FILE *fs)
 {
-    int length=DIR[direction][0]+player[0];
-    int width=DIR[direction][1]+player[1];
-    if(length<LENGTH&&length>=0&&width>=0&&width<WIDTH&&map[length][width]!=1)
+    playerFinal(map,player);
+    BOX=number(map,box)+number(map,box_in_get);
+    fprintf(fs,"%1d %1d %1d\n",WIDTH,LENGTH,BOX);
+    for(int m=0;m<LENGTH;m++)
     {
-        return TRUE;
+        for(int m2=0;m2<WIDTH;m2++)
+        {
+            fprintf(fs,"%d",map[m][m2]);
+        }
+        fprintf(fs,"\n");
     }
-    else return FALSE;
+    playerPosition(map,player);//used in pairs with function playerFinal()
 }
 
-int validBox(int map[LENGTH][WIDTH], int player[2], int direction)
+int validMove(const int map[LENGTH][WIDTH],const int player[2], int direction)
 {
     int length=DIR[direction][0]+player[0];
     int width=DIR[direction][1]+player[1];
-    int lengthmore=length+DIR[direction][0];
-    int widthmore=width+DIR[direction][1];
-    if((map[length][width]!=3&&map[length][width]!=9)||((map[length][width]==3||map[length][width]==9)\
-        &&(map[lengthmore][widthmore]!=9&&map[lengthmore][widthmore]!=3\
-       &&map[lengthmore][widthmore]!=1&&lengthmore<LENGTH&&widthmore<WIDTH)))
+    if(length<LENGTH&&length>=0&&width>=0&&width<WIDTH&&map[length][width]!=wall)
         return TRUE;
     else
         return FALSE;
 }
 
-int number(int map[LENGTH][WIDTH],int n)
+int validBox(const int map[LENGTH][WIDTH],const int player[2], int direction)
+{
+    int length=DIR[direction][0]+player[0];
+    int width=DIR[direction][1]+player[1];
+    int lengthmore=length+DIR[direction][0];
+    int widthmore=width+DIR[direction][1];
+    if((map[length][width]!=box&&map[length][width]!=box_in_get)||((map[length][width]==box||map[length][width]==box_in_get)\
+        &&(map[lengthmore][widthmore]!=box_in_get&&map[lengthmore][widthmore]!=box\
+       &&map[lengthmore][widthmore]!=wall&&lengthmore<LENGTH&&widthmore<WIDTH)))
+        return TRUE;
+    else
+        return FALSE;
+}
+
+int number(int map[LENGTH][WIDTH],int figure)
 {
     int sum=0;
     for(int length=0;length<LENGTH;length++)
     {
         for(int width=0;width<WIDTH;width++)
         {
-            if (map[length][width]==n)
+            if (map[length][width]==figure)
                 sum++;
         }
     }
