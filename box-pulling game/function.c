@@ -155,22 +155,21 @@ int validMove(const int map[LENGTH][WIDTH],const int player[2], int direction)
 {
     int length=DIR[direction][0]+player[0];
     int width=DIR[direction][1]+player[1];
-    if(length<LENGTH&&length>=0&&width>=0&&width<WIDTH&&map[length][width]!=wall)
-        return TRUE;
-    else
-        return FALSE;
-}
-
-int validBox(const int map[LENGTH][WIDTH],const int player[2], int direction)
-{
-    int length=DIR[direction][0]+player[0];
-    int width=DIR[direction][1]+player[1];
     int lengthmore=length+DIR[direction][0];
     int widthmore=width+DIR[direction][1];
-    if((map[length][width]!=box&&map[length][width]!=box_in_get)||((map[length][width]==box||map[length][width]==box_in_get)\
-        &&(map[lengthmore][widthmore]!=box_in_get&&map[lengthmore][widthmore]!=box\
-       &&map[lengthmore][widthmore]!=wall&&lengthmore<LENGTH&&widthmore<WIDTH)))
-        return TRUE;
+    if(length<LENGTH&&length>=0&&width>=0&&width<WIDTH&&map[length][width]!=wall)//basic judging standard
+    {
+        if(map[length][width]!=box&&map[length][width]!=box_in_get)
+            return TRUE;
+        else
+        {
+            if(map[lengthmore][widthmore]!=box_in_get&&map[lengthmore][widthmore]!=box\
+            &&map[lengthmore][widthmore]!=wall&&lengthmore<LENGTH&&widthmore<WIDTH)
+                return TRUE;
+            else
+                return FALSE;
+        }
+    }
     else
         return FALSE;
 }
