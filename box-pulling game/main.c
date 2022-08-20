@@ -120,7 +120,7 @@ int main()
 
                     /* move player if dir is valid */
                     // TODO check a move is valid? return true for valid, false for invalid
-                    if(validMove(map,player,dir)&&validBox(map,player,dir))
+                    if(validMove(map,player,dir))
                         playerMove(map,player,dir);
                 }
             }
