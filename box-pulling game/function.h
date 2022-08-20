@@ -33,7 +33,6 @@ void playerMove(int map[LENGTH][WIDTH],int player[2],int direction);
 void printMap(int map[LENGTH][WIDTH],const int player[2]);
 void storeMap(int map[LENGTH][WIDTH], int player[2],FILE *fs);
 int validMove(const int map[LENGTH][WIDTH],const int player[2], int direction);
-int validBox(const int map[LENGTH][WIDTH],const int player[2], int direction);
 int number(int map[LENGTH][WIDTH],int figure);
 
 #endif //BOXFINAL_FUNCTION_H
